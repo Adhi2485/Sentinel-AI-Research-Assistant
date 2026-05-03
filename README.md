@@ -1,49 +1,71 @@
-# Multi-Document AI Research Assistant
+# 🔬 Sentinel: Multi-Document AI Research Assistant
+## Comprehensive Project Summary & Architecture Report
 
-This is a complete, production-ready RAG system designed to process multiple research papers (PDFs), extract and index their contents semantically, and provide source-backed answers to user queries while detecting potential contradictions across different documents.
+This document outlines the architecture, data pipeline, and technologies used to build a state-of-the-art Retrieval-Augmented Generation (RAG) research assistant. 
 
-## Architecture
+---
 
-1. **Document Ingestion**: Extracts text using `PyMuPDF`.
-2. **Chunking**: Chunks text with a sliding window approach for overlap.
-3. **Embeddings**: Uses Sentence-BERT (`all-MiniLM-L6-v2`) via `sentence-transformers`.
-4. **Vector Store**: Uses `FAISS` for fast similarity search.
-5. **RAG Model**: Uses `google/flan-t5-base` for accurate answer generation based on retrieved context.
-6. **Summarization**: Uses `facebook/bart-large-cnn` for document-level summarization.
-7. **Contradiction Detection**: Uses `cross-encoder/nli-distilroberta-base` to analyze retrieved chunks for conflicts.
-8. **API**: Backend built with `FastAPI`.
-9. **UI**: Frontend built with `Streamlit`.
+### 1. System Architecture Overview
+The project is built on a decoupled, modern architecture:
+*   **Backend:** A high-performance asynchronous REST API built with **FastAPI** (Python). It handles heavy machine learning inference, semantic indexing, and memory management.
+*   **Frontend:** A standalone, responsive Single Page Application (SPA) built using **React JS** and **Vite**, featuring modern styling, glassmorphism UI elements, and real-time state management.
 
-## Setup Instructions
+---
 
-### 1. Create a Virtual Environment (Optional but recommended)
-```powershell
-python -m venv venv
-.\venv\Scripts\activate
-```
+### 2. Core Processing Pipeline (How It Works)
 
-### 2. Install Dependencies
-```powershell
-pip install -r requirements.txt
-```
+The backend follows an advanced NLP pipeline designed to ingest complex academic PDFs and answer natural language questions accurately without hallucinations.
 
-### 3. Run the Backend API
-Start the FastAPI server:
-```powershell
-python api/main.py
-```
-Wait for the initial model loading to complete (it will download models on first run).
-The API will be available at `http://localhost:8000`.
+#### A. Data Ingestion & Chunking
+*   **Extraction:** Uses `PyMuPDF` to accurately extract raw text and layout metadata (page numbers, document names) from uploaded PDFs.
+*   **Smart Chunking:** Text is split into overlapping chunks. To prevent Transformer token-limit crashes (`1091 > 512` error), the chunk size is strictly optimized to **250 words** with a **40-word overlap**, maintaining contextual continuity across page breaks.
 
-### 4. Run the Streamlit UI
-In a new terminal:
-```powershell
-streamlit run ui/app.py
-```
+#### B. Indexing & Storage
+*   **Dense Embeddings:** Chunks are passed through a Sentence-Transformer model (`all-MiniLM-L6-v2`) to convert textual meaning into 384-dimensional mathematical vectors.
+*   **Vector Storage (FAISS):** These vectors are indexed into a **FAISS** (Facebook AI Similarity Search) L2-distance database for blazing-fast semantic lookups in memory.
+*   **Sparse Lexical Indexing (BM25):** Alongside the dense vectors, the exact words are tokenized and indexed using the **Okapi BM25** algorithm.
 
-## Features
-- Upload Multiple PDFs
-- Document Summarization
-- Semantic Search Querying
-- Source Citations in Answers
-- Automatic Contradiction Detection among retrieved facts
+#### C. Query & Retrieval (Hybrid Search)
+When a user asks a question, the system does not just do a simple search. It uses **Hybrid Retrieval**:
+1.  It queries both the FAISS (meaning-based) and BM25 (keyword-based) indexes to retrieve an initial broad pool of documents (Top K * 2).
+2.  **Cross-Encoder Re-Ranking:** It passes these candidate chunks into a specialized Cross-Encoder model (`ms-marco-MiniLM-L-6-v2`). This model performs deep pairwise analysis between the user's question and each chunk, assigning a highly accurate mathematical "Rank Score" and discarding irrelevant data.
+
+#### D. Synthesis & Contradiction Detection
+*   **Generative QA:** The top re-ranked chunks are passed as context to an advanced LLM (**`google/flan-t5-large`**). The prompt explicitly bounds the AI to use *only* the provided context. The generation utilizes **Beam Search**, early stopping, and n-gram repetition penalties for highly professional prose.
+*   **Contradiction Analysis:** The retrieved chunks are evaluated by a Natural Language Inference (NLI) model (`nli-distilroberta-base`) to detect if different academic papers disagree with each other (e.g., Paper A says X, Paper B says Y).
+
+---
+
+### 3. Key Advanced Features (Final Touches)
+
+1.  **System Telemetry Dashboard:** An "Under the Hood" UI feature that proves the system's architecture. It queries a `/system_telemetry` endpoint to display live RAM usage, FAISS index sizes, vector dimensions, and a live JSON snapshot of exactly how a chunk is stored in memory.
+2.  **Transparency & Rerank Scores:** Underneath every answer, users can expand a "Transparency" drawer to see the exact Cross-Encoder scores and source text that influenced the AI's answer.
+3.  **Conversational Memory (Chat History):** The React frontend maintains a persistent, scrollable history of all user interactions, citations, and answers during a session.
+4.  **Database "Nuke" Control:** A dedicated endpoint and UI button that safely flushes the FAISS index, RAM, and document logs, preventing cross-contamination between different research sessions.
+5.  **Automated RAG Evaluation Script:** A standalone script (`evaluate_rag.py`) utilizing **ROUGE-L** (lexical overlap) and **Cosine Similarity** to mathematically prove the accuracy of the system against ground-truth benchmarks.
+
+---
+
+### 4. Technology Stack & Libraries
+
+#### AI / NLP Libraries (Python)
+*   **`transformers`**: HuggingFace library for downloading and running the FLAN-T5 (QA) and BART (Summarization) LLMs.
+*   **`sentence-transformers`**: Handles the creation of dense embeddings and the Cross-Encoder re-ranking.
+*   **`faiss-cpu`**: Facebook's highly optimized C++ library for vector similarity search.
+*   **`rank_bm25`**: Implementation of the Okapi BM25 algorithm for keyword-based sparse retrieval.
+*   **`torch` (PyTorch)**: The underlying deep learning framework powering the transformer models.
+
+#### Backend Framework & Utilities
+*   **`fastapi` & `uvicorn`**: High-performance asynchronous web framework and ASGI server.
+*   **`pydantic`**: Data validation and strict typing for API payloads.
+*   **`python-multipart`**: Enables the backend to securely receive PDF file uploads.
+*   **`PyMuPDF` (fitz)**: The fastest and most accurate PDF parsing library available for Python.
+
+#### Evaluation Metrics
+*   **`scikit-learn`**: Used for mathematical operations like calculating Cosine Similarities in the evaluation script.
+*   **`rouge-score`**: Calculates the structural overlap between generated text and ground truth.
+
+#### Frontend Web Stack
+*   **`react`**: Component-based UI library.
+*   **`vite`**: Next-generation lightning-fast frontend build tool.
+*   **Vanilla CSS**: Custom-written CSS variables, animations, and Flexbox grids for a sleek, glassmorphic design without heavy CSS frameworks.
