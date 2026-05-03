@@ -69,3 +69,45 @@ When a user asks a question, the system does not just do a simple search. It use
 *   **`react`**: Component-based UI library.
 *   **`vite`**: Next-generation lightning-fast frontend build tool.
 *   **Vanilla CSS**: Custom-written CSS variables, animations, and Flexbox grids for a sleek, glassmorphic design without heavy CSS frameworks.
+
+---
+
+### 5. How to Run the Project
+
+This project requires both the FastAPI backend and the React frontend to be running simultaneously.
+
+#### Step 1: Start the Backend (AI Engine)
+1. Open a terminal and navigate to the root directory.
+2. Install the required Python dependencies (if you haven't already):
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Start the FastAPI server:
+   ```bash
+   python api/main.py
+   ```
+   *(Wait for the AI models to load into memory. It is ready when you see `Uvicorn running on http://0.0.0.0:8000`)*
+
+#### Step 2: Start the Frontend (User Interface)
+1. Open a **second** terminal window.
+2. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+3. Install the Node modules (first time only):
+   ```bash
+   npm install
+   ```
+4. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+
+#### Step 3: Access the Application
+Open your web browser and navigate to: **[http://localhost:5173](http://localhost:5173)**
+
+#### Evaluation
+To run the automated metrics script:
+```bash
+python evaluate_rag.py
+```
