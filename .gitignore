@@ -1,0 +1,26 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+
+# Project Data (Do not push PDFs or Vector stores!)
+data/raw_pdfs/*
+!data/raw_pdfs/.gitkeep
+data/processed_text/*
+!data/processed_text/.gitkeep
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Frontend is ignored here only if you want it separate, but since it has its own .gitignore, 
+# Git will handle frontend/node_modules automatically. 

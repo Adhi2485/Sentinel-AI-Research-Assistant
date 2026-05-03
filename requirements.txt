@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+streamlit
+PyMuPDF
+transformers
+sentence-transformers
+faiss-cpu
+torch
+pydantic
+python-multipart
+scikit-learn
+rank_bm25
+rouge-score
