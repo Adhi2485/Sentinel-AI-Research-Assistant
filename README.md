@@ -1,5 +1,5 @@
-# 🔬 Sentinel: Multi-Document AI Research Assistant
-## Comprehensive Project Summary & Architecture Report
+# Sentinel: Multi-Document AI Research Assistant
+# Comprehensive Project Summary & Architecture Report
 
 This document outlines the architecture, data pipeline, and technologies used to build a state-of-the-art Retrieval-Augmented Generation (RAG) research assistant. 
 
